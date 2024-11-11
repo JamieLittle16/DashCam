@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-The Mobile Dash-Cam app is designed to provide users with a reliable and efficient way to record their journeys using their mobile devices. The app will utilize both front and back-facing cameras to capture video footage, which can be invaluable for insurance claims and law enforcement investigations. The development of this app will follow the Agile methodology, organized into three iterations (sprints).
+The Mobile Dash-Cam app is designed to provide users with a reliable and efficient way to record their journeys using their mobile devices. The app will utilise both front and back-facing cameras to capture video footage, which can be invaluable for insurance claims and law enforcement investigations. The development of this app will follow the Agile methodology, organised into three iterations (sprints).
 
 ## Project Plan
 
@@ -71,7 +71,7 @@ The development process will be divided into three sprints:
 
 ## Conclusion
 
-The Mobile Dash-Cam app aims to provide essential features for recording and managing video footage while ensuring user-friendliness and security. The outlined features and limitations reflect a focused approach to development, prioritizing core functionalities that meet the needs of stakeholders.
+The Mobile Dash-Cam app aims to provide essential features for recording and managing video footage while ensuring user-friendliness and security. The outlined features and limitations reflect a focused approach to development, prioritising core functionalities that meet the needs of stakeholders.
 
 ## Getting Started
 
