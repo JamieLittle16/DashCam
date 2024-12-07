@@ -21,7 +21,6 @@ export default function DualCamera() {
   }
 
   function toggleCameraFacing() {
-<<<<<<< HEAD
     // This function toggles the camera's facing direction between 'back' and 'front'
     setFacing(current => (current === 'back' ? 'front' : 'back')); 
      // The `setFacing` function updates the state based on the current value.
@@ -30,28 +29,15 @@ export default function DualCamera() {
   return (
     <View style={styles.container}>  {/* Main container view with styling applied. */}
       <StatusBar style="light" /> {/* Sets the status bar style to 'light', for visibility */}
-=======
-    setFacing(current => (current === 'back' ? 'front' : 'back')); // flips camera
-  }
-
-  return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
->>>>>>> origin/experimental
       <CameraView
         style={styles.camera}
         facing={facing}
       >
-<<<<<<< HEAD
         {/* CameraView component displays the live camera feed. */}
         <SafeAreaView style={styles.overlay}> { /* Ensures UI respects Screen notches */}
           <View style={styles.buttonContainer}> {/* Container for the button to flip the camera. */}
             <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}> {/* Flips camera when pressed */}
-=======
-        <SafeAreaView style={styles.overlay}>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
->>>>>>> origin/experimental
+
               <Text style={styles.text}>Flip Camera</Text>
             </TouchableOpacity>
           </View>
