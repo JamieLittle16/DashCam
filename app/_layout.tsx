@@ -46,14 +46,19 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  // Detect the current color scheme (e.g., 'light' or 'dark')
+  const colorScheme = useColorScheme(); 
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      {/* Stack manages screen navigation */}
       <Stack>
+         {/* Define a screen named "(tabs)" */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* Define a modal screen */}
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
   );
 }
+
