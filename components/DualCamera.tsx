@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 export default function DualCamera() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
+  const [requesting, setRequesting] = useState(false); // State to handle permission request feedback
 
   if (!permission) {
     return <View />;
@@ -15,29 +16,32 @@ export default function DualCamera() {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Button 
+          onPress={async () => {
+            setRequesting(true); // Set requesting to true when button is pressed
+            await requestPermission();
+            setRequesting(false); // Reset requesting after permission is requested
+          }} 
+          title={requesting ? "Requesting..." : "Grant Permission"} // Change button text based on state
+        />
       </SafeAreaView>
     );
   }
 
   function toggleCameraFacing() {
-    // This function toggles the camera's facing direction between 'back' and 'front'
-    setFacing(current => (current === 'back' ? 'front' : 'back')); 
-     // The `setFacing` function updates the state based on the current value.
+    setFacing(current => (current === 'back' ? 'front' : 'back'));
   }
 
   return (
-    <View style={styles.container}>  {/* Main container view with styling applied. */}
-      <StatusBar style="light" /> {/* Sets the status bar style to 'light', for visibility */}
+    <View style={styles.container}>
+      <StatusBar style="light" />
       <CameraView
         style={styles.camera}
         facing={facing}
       >
-        {/* CameraView component displays the live camera feed. */}
-        <SafeAreaView style={styles.overlay}> { /* Ensures UI respects Screen notches */}
-          <View style={styles.buttonContainer}> {/* Container for the button to flip the camera. */}
-            <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}> {/* Flips camera when pressed */}
-
+        <SafeAreaView style={styles.overlay}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
               <Text style={styles.text}>Flip Camera</Text>
             </TouchableOpacity>
           </View>
@@ -91,7 +95,7 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderRadius: 10,
-    marginBottom: 30,
+    marginBottom: 90,
   },
   text: {
     fontSize: 24,
