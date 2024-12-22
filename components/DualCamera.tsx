@@ -1,23 +1,30 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, SafeAreaView, Dimensions } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
 export default function DualCamera() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
+  const [requesting, setRequesting] = useState(false); // State to handle permission request feedback
 
   if (!permission) {
-    // Camera permissions are still loading.
     return <View />;
   }
 
   if (!permission.granted) {
-    // Camera permissions are not granted yet.
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
-      </View>
+        <Button 
+          onPress={async () => {
+            setRequesting(true); // Set requesting to true when button is pressed
+            await requestPermission();
+            setRequesting(false); // Reset requesting after permission is requested
+          }} 
+          title={requesting ? "Requesting..." : "Grant Permission"} // Change button text based on state
+        />
+      </SafeAreaView>
     );
   }
 
@@ -27,21 +34,36 @@ export default function DualCamera() {
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing}>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-            <Text style={styles.text}>Flip Camera</Text>
-          </TouchableOpacity>
-        </View>
+      <StatusBar style="light" />
+      <CameraView
+        style={styles.camera}
+        facing={facing}
+      >
+        <SafeAreaView style={styles.overlay}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+              <Text style={styles.text}>Flip Camera</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </CameraView>
     </View>
   );
 }
 
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: 'black',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: screenWidth,
+    height: screenHeight,
   },
   message: {
     textAlign: 'center',
@@ -49,17 +71,31 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+    width: screenWidth,
+    height: screenHeight,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   buttonContainer: {
-    flex: 0.1, // Reduce flex to make space for the button
-    flexDirection: 'row',
+    flex: 1,
     backgroundColor: 'transparent',
-    justifyContent: 'center', // Center the button horizontally
-    padding: 20, // Add padding for spacing
+    flexDirection: 'row',
+    margin: 20,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
   button: {
-    // Remove alignSelf: 'flex-end'
-    padding: 10, // Add padding for button size
+    padding: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 10,
+    marginBottom: 90,
   },
   text: {
     fontSize: 24,
