@@ -46,7 +46,8 @@ const SpeedTracker = () => {
     setIsTracking((prev) => !prev);
   };
 
-  const speedInMph = speed ? (speed * 2.23694).toFixed(2) : 0;
+  const speedInMph = speed ? (speed * 2.23694 * Number(speed <= 0.7)).toFixed(0) : 0; // Convert m/s to mph
+  // if speed is less than 0.7 m/s, set it to 0 mph
 
   return (
     <View style={styles.container}>
