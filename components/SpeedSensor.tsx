@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import * as Location from 'expo-location';
+import React, { useEffect, useState } from "react";
+import { View, Text, Button, StyleSheet } from "react-native";
+import * as Location from "expo-location";
 
 const SpeedTracker = () => {
   const [speed, setSpeed] = useState(0);
@@ -8,12 +8,12 @@ const SpeedTracker = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    let subscription: { remove: any; };
+    let subscription: { remove: any };
 
     const startTracking = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
         return;
       }
 
@@ -46,7 +46,9 @@ const SpeedTracker = () => {
     setIsTracking((prev) => !prev);
   };
 
-  const speedInMph = speed ? (speed * 2.23694 * Number(speed <= 0.7)).toFixed(0) : 0; // Convert m/s to mph
+  const speedInMph = speed
+    ? (speed * 2.23694 * Number(speed <= 0.7)).toFixed(0)
+    : 0; // Convert m/s to mph
   // if speed is less than 0.7 m/s, set it to 0 mph
 
   return (
@@ -54,14 +56,15 @@ const SpeedTracker = () => {
       <View style={styles.speedContainer}>
         <View style={styles.outerCircle}>
           <View style={styles.innerCircle}>
-            <Text style={styles.speedText}>
-              {speedInMph} mph
-            </Text>
+            <Text style={styles.speedText}>{speedInMph} mph</Text>
           </View>
         </View>
       </View>
       {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
-      <Button title={isTracking ? "Stop Tracking" : "Start Tracking"} onPress={toggleTracking} />
+      <Button
+        title={isTracking ? "Stop Tracking" : "Start Tracking"}
+        onPress={toggleTracking}
+      />
     </View>
   );
 };
@@ -69,8 +72,8 @@ const SpeedTracker = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   speedContainer: {
     marginBottom: 20,
@@ -80,25 +83,25 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75, // Half of width/height for a perfect circle
     borderWidth: 35,
-    borderColor: '#bd002d',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    borderColor: "#bd002d",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
   },
   innerCircle: {
     width: 115,
     height: 115,
     borderRadius: 70, // Half of width/height for a perfect circle
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
   },
   speedText: {
     fontSize: 24,
-    color: 'black',
+    color: "black",
   },
   errorText: {
-    color: 'red',
+    color: "red",
     marginBottom: 20,
   },
 });
