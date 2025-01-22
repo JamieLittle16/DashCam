@@ -4,9 +4,9 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import * as SQLite from 'expo-sqlite' // Imports SQL
 
 
-/* 
+/*
  * Returns the database object,
- * Creates a new db if one does not exist 
+ * Creates a new db if one does not exist
  */
 const db = SQLite.openDatabase(
     {
@@ -23,7 +23,7 @@ const db = SQLite.openDatabase(
 const createTable = () => {
     db.transaction((tx) => {
         tx.executeSql( // SQL query to create table
-            "CREATE TABLE IF NOT EXISTS footage (" + 
+            "CREATE TABLE IF NOT EXISTS footage (" +
             "ID INTEGER PRIMARY KEY AUTOINCREMENT, " + // Unique identifier for each entry, auto-incremented
             "FrontFotPath TEXT, " + // File path for the front footage (as a string)
             "BackFotPath TEXT, " + // File path for the back footage (as a string)
@@ -34,7 +34,7 @@ const createTable = () => {
     });
 };
 
-/* 
+/*
  * Function to fetch footage records older than a specified number of days
  * where the 'Flag' is false (indicating footage isn't saved by user).
  */
@@ -42,9 +42,9 @@ const getOldFot = (days, successCallback) => {
     const currentDate = new Date(); // Create a new Date object representing the current date and time.
     const thresholdDate = new Date(currentDate);  // Create a new Date object for the threshold date (current date minus 'days').
     thresholdDate.setDate(currentDate.getDate() - days); // Subtract 'days' from the current date to get the threshold date.
-  
+
     const thresholdDateString = thresholdDate.toISOString(); // Convert to string for SQL query
-  
+
     db.transaction(
       (tx) => {
         tx.executeSql(
@@ -64,7 +64,7 @@ const getOldFot = (days, successCallback) => {
   };
 
 
-/* 
+/*
  * Deletes entry from footage table by ID (Asynchronous)
  */
 const deleteFot = async (Id) => {
@@ -94,7 +94,7 @@ const insertFot = async (frontFotPath, backFotPath, date, flag) => {
         (tx) => {
             // Executes a SQL query to insert values into the footage table
           tx.executeSql(
-            'INSERT INTO footage (FrontFotPath, BackFotPath, date, Flag) VALUES (?, ?, ?, ?);',  
+            'INSERT INTO footage (FrontFotPath, BackFotPath, date, Flag) VALUES (?, ?, ?, ?);',
             // SQL statement with placeholders for dynamic values
             [frontFotPath, backFotPath, date, flag], // Values to replace the placeholders
 
