@@ -6,6 +6,7 @@ import {
 } from "expo-camera";
 import * as FileSystem from "expo-file-system";
 import { router } from "expo-router";
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
@@ -41,6 +42,18 @@ export default function DualCamera() {
   const [requestingPermissions, setRequestingPermissions] = useState(false);
   const [hasPermissions, setHasPermissions] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [orientation, setOrientation] = useState(ScreenOrientation.Orientation.PORTRAIT_UP);
+  const isLandscape = orientation === ScreenOrientation.Orientation.LANDSCAPE_LEFT || orientation === ScreenOrientation.Orientation.LANDSCAPE_RIGHT;
+
+  useEffect(() => {
+    const subscription = ScreenOrientation.addOrientationChangeListener((event) => {
+      setOrientation(event.orientationInfo.orientation);
+    });
+
+    return () => {
+      ScreenOrientation.removeOrientationChangeListener(subscription);
+    };
+  }, []);
 
   useEffect(() => {
     const handlePermissions = async () => {
@@ -265,11 +278,19 @@ export default function DualCamera() {
     );
   }
 
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
       <CameraView
-        style={styles.camera}
+        style={[
+          styles.camera,
+          isLandscape ? styles.landscapeCamera : styles.portraitCamera,
+          {
+            width: isLandscape ? screenHeight : screenWidth,
+            height: isLandscape ? screenWidth : screenHeight,
+          }
+        ]}
         facing={config.enableFrontCamera ? 'front' : 'back'}
         onCameraReady={() => {
             console.log('Front camera ready');
@@ -306,8 +327,8 @@ export default function DualCamera() {
         <View style={{flex: 1}} />
       </CameraView>
 
-      <SafeAreaView style={styles.overlay}>
-        <View style={styles.bottomBar}>
+      <SafeAreaView style={[styles.overlay, isLandscape ? styles.landscapeOverlay : styles.portraitOverlay]}>
+        <View style={[styles.bottomBar, isLandscape ? styles.landscapeBottomBar : styles.portraitBottomBar]}>
           <TouchableOpacity
             style={styles.audioToggle}
             onPress={toggleAudio}
@@ -316,6 +337,7 @@ export default function DualCamera() {
               name="microphone"
               size={40}
               color="white"
+              style={isLandscape ? { transform: [{ rotate: '90deg' }] } : {}}
             />
             {!isAudioEnabled && (
               <View style={styles.disabledLine} />
@@ -338,6 +360,7 @@ export default function DualCamera() {
               name="home"
               size={40}
               color="white"
+              style={isLandscape ? { transform: [{ rotate: '90deg' }] } : {}}
             />
           </TouchableOpacity>
         </View>
@@ -345,8 +368,6 @@ export default function DualCamera() {
     </View>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -367,17 +388,33 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
-    width: screenWidth,
-    height: screenHeight,
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
   },
+  landscapeCamera: {
+    transform: [{ rotate: '90deg' }, { translateX: (screenWidth - screenHeight) / 2 }, { translateY: (screenHeight - screenWidth) / 2 }],
+    width: screenHeight,
+    height: screenWidth,
+  },
+  portraitCamera: {
+    transform: [{ rotate: '0deg' }],
+  },
   overlay: {
     flex: 1,
     backgroundColor: "transparent",
+  },
+  landscapeOverlay: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  portraitOverlay: {
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   bottomBar: {
     position: 'absolute',
@@ -388,6 +425,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: "center",
     zIndex: 1,
+  },
+  landscapeBottomBar: {
+    flexDirection: 'column',
+    left: 5,
+    right: 5,
+    bottom: 20,
+    top: 20,
+  },
+  portraitBottomBar: {
+    flexDirection: 'row',
+    left: 20,
+    right: 20,
+    bottom: 5,
   },
   recordButton: {
     width: 70,
