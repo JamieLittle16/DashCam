@@ -1,27 +1,31 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-
 import * as SQLite from 'expo-sqlite';
+
+let db = null; // Store the database object
 
 /*
  * Returns the database object,
  * Creates a new db if one does not exist
  */
-const db = SQLite.openDatabaseAsync(
-    'DashCamDb', // Database name
-  ).then((db) => {
-      createTable();
-      return db;
-    }).catch(error => {
-      console.error("Failed to open database:", error);
-      return null;
-    });
 
+const initializeDatabase = async () => {
+  if (db) {
+    return db; // Return existing database if available
+  }
+  try {
+    db = await SQLite.openDatabaseAsync('DashCamDb');
+    await createTable(db);
+    return db;
+  } catch (error) {
+    console.error("Failed to open database:", error);
+    return null;
+  }
+};
 /*
  * Function creates 'footage' table if it does not exist already.
  */
-const createTable = async () => {
-    const database = await db;
+const createTable = async (database) => {
     if (!database) {
         console.error("Database not initialized");
         return;
@@ -42,16 +46,16 @@ const createTable = async () => {
  * where the 'Flag' is false (indicating footage isn't saved by user).
  */
 const getOldFot = async (days, successCallback) => {
+    const database = await initializeDatabase(); // ensure db is initialized
+    if (!database) {
+        console.error("Database not initialized");
+        return;
+    }
     const currentDate = new Date(); // Create a new Date object representing the current date and time.
     const thresholdDate = new Date(currentDate);  // Create a new Date object for the threshold date (current date minus 'days').
     thresholdDate.setDate(currentDate.getDate() - days); // Subtract 'days' from the current date to get the threshold date.
 
     const thresholdDateString = thresholdDate.toISOString(); // Convert to string for SQL query
-    const database = await db;
-    if (!database) {
-        console.error("Database not initialized");
-        return;
-    }
     database.allAsync(
           `SELECT * FROM footage WHERE date < ? AND Flag = ?;`, // SQL query with placeholders
           [thresholdDateString, false], // Replace placeholders with the threshold date and false for Flag
@@ -68,26 +72,41 @@ const getOldFot = async (days, successCallback) => {
  * Deletes entry from footage table by ID (Asynchronous)
  */
 const deleteFot = async (Id) => {
-    const database = await db;
-    if (!database) {
-        return Promise.reject("Database not initialized");
-    }
-    return database.runAsync('delete from footage where id = ?', [Id]);
-   };
+  const database = await initializeDatabase();
+  if (!database) {
+      return Promise.reject("Database not initialized");
+  }
+  return database.runAsync('delete from footage where id = ?', [Id]);
+ };
+
 
 /*
  * Inserts new row into footage table (Asynchronous)
  */
 const insertFot = async (frontFotPath, backFotPath, date, flag) => {
-    const database = await db;
-     if (!database) {
-        return Promise.reject("Database not initialized");
-    }
+    const database = await initializeDatabase();
+    if (!database) {
+      return Promise.reject("Database not initialized");
+  }
      return database.runAsync(
         'INSERT INTO footage (FrontFotPath, BackFotPath, date, Flag) VALUES (?, ?, ?, ?);',
         [frontFotPath, backFotPath, date, flag]
       );
 };
 
+const toggleFlag = async (Id) => {
+    const database = await initializeDatabase();
+    if (!database) {
+      return Promise.reject("Database not initialized");
+    }
+    try {
+       await database.runAsync('UPDATE footage SET Flag = CASE WHEN Flag = 0 THEN 1 ELSE 0 END WHERE ID = ?', [Id]);
+        return true;
+    } catch (error) {
+      console.error('Error toggling flag:', error);
+      return false;
+    }
+  };
+
 // Export functions for use in other parts of the app
-export { createTable, insertFot, getOldFot, deleteFot };
+export { initializeDatabase, insertFot, getOldFot, deleteFot, toggleFlag};
