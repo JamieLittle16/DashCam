@@ -3,12 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 import React, { useEffect, useState } from "react";
 import {
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-  useColorScheme,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    View,
+    useColorScheme,
 } from "react-native";
 
 const SettingsModal = () => {
@@ -31,7 +31,7 @@ const SettingsModal = () => {
     }
   };
 
-  const saveSettings = async (newSettings) => {
+  const saveSettings = async (newSettings: typeof config) => {
     try {
       await AsyncStorage.setItem("settings", JSON.stringify(newSettings));
       setSettings(newSettings);
@@ -40,12 +40,12 @@ const SettingsModal = () => {
     }
   };
 
-  const handleToggle = (key) => (value) => {
+  const handleToggle = (key: keyof typeof config) => (value: boolean) => {
     const newSettings = { ...settings, [key]: value };
     saveSettings(newSettings);
   };
 
-  const handleInputChange = (key) => (value) => {
+  const handleInputChange = (key: keyof typeof config) => (value: string | number) => {
     const newSettings = { ...settings, [key]: value };
     saveSettings(newSettings);
   };
@@ -126,7 +126,7 @@ const SettingsModal = () => {
       </View>
 
       <View style={styles.settingItem}>
-        <Text style={styles.text}>Time to Live (Days)</Text>
+        <Text style={styles.text}>Time to Preserve Recordings (Days)</Text>
         <Picker
           selectedValue={settings.timeToLive}
           style={styles.picker}
