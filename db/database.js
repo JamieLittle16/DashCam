@@ -9,7 +9,7 @@ let db = null; // Store the database object
  * Creates a new db if one does not exist
  */
 
-const initializeDatabase = async () => {
+const initialiseDatabase = async () => {
   if (db) {
     return db; // Return existing database if available
   }
@@ -27,7 +27,7 @@ const initializeDatabase = async () => {
  */
 const createTable = async (database) => {
     if (!database) {
-        console.error("Database not initialized");
+        console.error("Database not initialised");
         return;
     }
     await database.execAsync( // SQL query to create table
@@ -46,9 +46,9 @@ const createTable = async (database) => {
  * where the 'Flag' is false (indicating footage isn't saved by user).
  */
 const getOldFot = async (days, successCallback) => {
-    const database = await initializeDatabase(); // ensure db is initialized
+    const database = await initialiseDatabase(); // ensure db is initialised
     if (!database) {
-        console.error("Database not initialized");
+        console.error("Database not initialised");
         return;
     }
     const currentDate = new Date(); // Create a new Date object representing the current date and time.
@@ -72,9 +72,9 @@ const getOldFot = async (days, successCallback) => {
  * Deletes entry from footage table by ID (Asynchronous)
  */
 const deleteFot = async (Id) => {
-  const database = await initializeDatabase();
+  const database = await initialiseDatabase();
   if (!database) {
-      return Promise.reject("Database not initialized");
+      return Promise.reject("Database not initialised");
   }
   return database.runAsync('delete from footage where id = ?', [Id]);
  };
@@ -84,9 +84,9 @@ const deleteFot = async (Id) => {
  * Inserts new row into footage table (Asynchronous)
  */
 const insertFot = async (frontFotPath, backFotPath, date, flag) => {
-    const database = await initializeDatabase();
+    const database = await initialiseDatabase();
     if (!database) {
-      return Promise.reject("Database not initialized");
+      return Promise.reject("Database not initialised");
   }
      return database.runAsync(
         'INSERT INTO footage (FrontFotPath, BackFotPath, date, Flag) VALUES (?, ?, ?, ?);',
@@ -95,9 +95,9 @@ const insertFot = async (frontFotPath, backFotPath, date, flag) => {
 };
 
 const toggleFlag = async (Id) => {
-    const database = await initializeDatabase();
+    const database = await initialiseDatabase();
     if (!database) {
-      return Promise.reject("Database not initialized");
+      return Promise.reject("Database not initialised");
     }
     try {
        await database.runAsync('UPDATE footage SET Flag = CASE WHEN Flag = 0 THEN 1 ELSE 0 END WHERE ID = ?', [Id]);
@@ -109,4 +109,4 @@ const toggleFlag = async (Id) => {
   };
 
 // Export functions for use in other parts of the app
-export { initializeDatabase, insertFot, getOldFot, deleteFot, toggleFlag};
+export { initialiseDatabase, insertFot, getOldFot, deleteFot, toggleFlag};

@@ -1,13 +1,13 @@
 import config from '@/config/config';
-import { deleteFot, getOldFot, initializeDatabase } from '@/db/database';
+import { deleteFot, getOldFot, initialiseDatabase } from '@/db/database';
 import { useEffect } from 'react';
 
 const ManageDatabase = () => {
   useEffect(() => {
     const cleanUpDatabase = async () => {
       try {
-          // Initialize the database
-          await initializeDatabase();
+          // Initialise the database
+          await initialiseDatabase();
 
           // Get old footage entries based on the user configuration
           getOldFot(config.timeToLive, async (oldFootage: any[]): Promise<void> => {

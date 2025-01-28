@@ -1,4 +1,4 @@
-import { initializeDatabase, insertFot, getOldFot, deleteFot, toggleFlag } from '../db/database';
+import { initialiseDatabase, insertFot, getOldFot, deleteFot, toggleFlag } from '../db/database';
 import * as SQLite from 'expo-sqlite';
 
 // Mock expo-sqlite (since we are not testing the library itself)
@@ -150,7 +150,7 @@ describe('Database Operations', () => {
     jest.clearAllMocks();
   });
   it('should create the table successfully', async () => {
-    const db = await initializeDatabase();
+    const db = await initialiseDatabase();
     expect(db.execAsync).toHaveBeenCalledTimes(1);
     expect(db.execAsync).toHaveBeenCalledWith(
       expect.stringContaining('CREATE TABLE IF NOT EXISTS')
@@ -168,7 +168,7 @@ describe('Database Operations', () => {
       lastInsertRowId: expect.any(Number),
       changes: 1,
     });
-    const db = await initializeDatabase();
+    const db = await initialiseDatabase();
     expect(db.runAsync).toHaveBeenCalledTimes(1);
     expect(db.runAsync).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO footage'),
@@ -187,7 +187,7 @@ describe('Database Operations', () => {
     // expect at least 1 result or more, since mock data contains old record
     expect(result.length).toBeGreaterThanOrEqual(1);
 
-    const db = await initializeDatabase();
+    const db = await initialiseDatabase();
     expect(db.allAsync).toHaveBeenCalledTimes(1);
     expect(db.allAsync).toHaveBeenCalledWith(
       expect.stringContaining(
@@ -201,7 +201,7 @@ describe('Database Operations', () => {
     const idToDelete = 1;
 
     await deleteFot(idToDelete);
-    const db = await initializeDatabase();
+    const db = await initialiseDatabase();
     expect(db.runAsync).toHaveBeenCalledTimes(1);
     expect(db.runAsync).toHaveBeenCalledWith(
       expect.stringContaining('delete from footage where id = ?'),
@@ -209,7 +209,7 @@ describe('Database Operations', () => {
     );
   });
   it('should handle errors', async () => {
-    const db = await initializeDatabase();
+    const db = await initialiseDatabase();
     db.runAsync.mockImplementationOnce(() => {
       return Promise.reject('Mocked Error');
     });
@@ -241,7 +241,7 @@ describe('Database Operations', () => {
   });
   it('should toggle the flag successfully', async () => {
     const idToToggle = 1;
-    const db = await initializeDatabase();
+    const db = await initialiseDatabase();
     const result1 =  await toggleFlag(idToToggle);
     expect(db.runAsync).toHaveBeenCalledTimes(1);
     expect(db.runAsync).toHaveBeenCalledWith(
@@ -258,7 +258,7 @@ describe('Database Operations', () => {
       expect(result2).toBe(true);
   });
    it('should handle errors in toggleFlag', async () => {
-       const db = await initializeDatabase();
+       const db = await initialiseDatabase();
         db.runAsync.mockImplementationOnce(() => {
             return Promise.reject('Mocked Error');
         });
