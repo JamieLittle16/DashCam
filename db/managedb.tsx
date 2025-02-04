@@ -7,20 +7,21 @@ const ManageDatabase = () => {
     const cleanUpDatabase = async () => {
       try {
           // Initialise the database
-          await initialiseDatabase();
+          const database = await initialiseDatabase();
+
 
           // Get old footage entries based on the user configuration
-          getOldFot(config.timeToLive, async (oldFootage: any[]): Promise<void> => {
+          const oldFootage = await getOldFot(config.timeToLive);
+          if(oldFootage){
             // Iterate over each old footage entry
             for (const footage of oldFootage) {
               // Delete the footage entry from the database
               await deleteFot(footage.ID);
             }
-        });
-    } catch(error){
-      console.error("Error during database cleanup: ", error);
-    }
-
+          }
+      } catch(error){
+          console.error("Error during database cleanup: ", error);
+      }
     };
 
     cleanUpDatabase();
