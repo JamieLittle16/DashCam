@@ -28,126 +28,157 @@ const initialiseDatabase = () => {
 /*
  * Function creates 'footage' table if it does not exist already.
  */
-const createTable = async (database) => {
-  if (!database) {
-    console.error("Database not initialised");
-    return;
-  }
-  await database.execAsync(
-    "CREATE TABLE IF NOT EXISTS footage (" +
-      "ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-      "FrontFotPath TEXT, " +
-      "BackFotPath TEXT, " +
-      "date TEXT, " +
-      "Flag BOOLEAN DEFAULT 0" +
-    ");"
-  );
-};
+ const createTable = async (database) => {
+   if (!database) {
+     console.error("Database not initialised");
+     return;
+   }
+   // Execute SQL command to create the 'footage' table if it does not exist
+   await database.execAsync(
+     "CREATE TABLE IF NOT EXISTS footage (" +
+       "ID INTEGER PRIMARY KEY AUTOINCREMENT, " + // Unique ID for each entry
+       "FrontFotPath TEXT, " + // Path to the front footage file
+       "BackFotPath TEXT, " + // Path to the back footage file
+       "date TEXT, " + // Date of the footage
+       "Flag BOOLEAN DEFAULT 0" + // Flag to indicate if the footage is saved by the user
+     ");"
+   );
+ };
 
-/*
- * Inserts sample data into the footage table
- */
-const insertSampleData = async (database) => {
-  if (!database) {
-    console.error("Database not initialized");
-    return;
-  }
+ /*
+  * Inserts sample data into the footage table
+  */
+ const insertSampleData = async (database) => {
+   if (!database) {
+     console.error("Database not initialized");
+     return;
+   }
 
-  // Check if there is existing data in the table before inserting
-  const count = await database.getAsync("SELECT COUNT(*) as count FROM footage");
-  if (count && count.count > 0) {
-    console.log('Sample data already exists.');
-    return; // Skip inserting if data already exists
-  }
+   // Check if there is existing data in the table before inserting
+   const count = await database.getAsync("SELECT COUNT(*) as count FROM footage");
+   if (count && count.count > 0) {
+     console.log('Sample data already exists.');
+     return; // Skip inserting if data already exists
+   }
 
-  const sampleData = [
-    {
-      frontFotPath: '/path/to/front1.mp4',
-      backFotPath: '/path/to/back1.mp4',
-      date: new Date(new Date().getTime() - (2 * 24 * 60 * 60 * 1000)).toISOString(),
-      flag: false
-    },
-    {
-      frontFotPath: '/path/to/front2.mp4',
-      backFotPath: '/path/to/back2.mp4',
-      date: new Date().toISOString(),
-      flag: true
-    },
-    {
-      frontFotPath: '/path/to/front3.mp4',
-      backFotPath: '/path/to/back3.mp4',
-      date: new Date(new Date().getTime() - (1 * 24 * 60 * 60 * 1000)).toISOString(),
-      flag: false
-    }
-  ];
+   // Define sample data to be inserted into the footage table
+   const sampleData = [
+     {
+       frontFotPath: '/path/to/front1.mp4',
+       backFotPath: '/path/to/back1.mp4',
+       date: new Date(new Date().getTime() - (2 * 24 * 60 * 60 * 1000)).toISOString(), // 2 days ago
+       flag: false
+     },
+     {
+       frontFotPath: '/path/to/front2.mp4',
+       backFotPath: '/path/to/back2.mp4',
+       date: new Date().toISOString(), // Current date
+       flag: true
+     },
+     {
+       frontFotPath: '/path/to/front3.mp4',
+       backFotPath: '/path/to/back3.mp4',
+       date: new Date(new Date().getTime() - (1 * 24 * 60 * 60 * 1000)).toISOString(), // 1 day ago
+       flag: false
+     }
+   ];
 
-  // Loop through the sample data and insert each entry into the database
-  for (const data of sampleData) {
-    await database.runAsync(
-      'INSERT INTO footage (FrontFotPath, BackFotPath, date, Flag) VALUES (?, ?, ?, ?);',
-      [data.frontFotPath, data.backFotPath, data.date, data.flag ? 1 : 0]
-    );
-  }
-};
+   // Loop through the sample data and insert each entry into the database
+   for (const data of sampleData) {
+     await database.runAsync(
+       'INSERT INTO footage (FrontFotPath, BackFotPath, date, Flag) VALUES (?, ?, ?, ?);',
+       [data.frontFotPath, data.backFotPath, data.date, data.flag ? 1 : 0] // Convert boolean flag to integer
+     );
+   }
+ };
 
-/*
- * Function to fetch footage records older than a specified number of days
- * where the 'Flag' is false (indicating footage isn't saved by user).
- */
-const getOldFot = async (days) => {
-  try {
-    const database = await initialiseDatabase();
-    const currentDate = new Date();
-    const thresholdDate = new Date(currentDate);
-    thresholdDate.setDate(currentDate.getDate() - days);
-    const thresholdDateString = thresholdDate.toISOString();
-    const result = await database.allAsync(
-      `SELECT * FROM footage WHERE date < ? AND Flag = ?;`,
-      [thresholdDateString, 0]
-    );
-    return result;
-  } catch (error) {
-    console.error("Error getting old footage", error);
-    throw error;
-  }
-};
+ /*
+  * Function to fetch footage records older than a specified number of days
+  * where the 'Flag' is false (indicating footage isn't saved by user).
+  * @param {number} days - The number of days to use as the threshold for fetching old footage.
+  * @returns {Promise<Array>} - A promise that resolves to an array of footage records older than the specified number of days with Flag set to false.
+  */
+ const getOldFot = async (days) => {
+   try {
+     const database = await initialiseDatabase(); // Get the database instance
+     const currentDate = new Date(); // Get the current date
+     const thresholdDate = new Date(currentDate);
 
-/*
- * Deletes entry from footage table by ID (Asynchronous)
- */
-const deleteFot = async (Id) => {
-  try {
-    const database = await initialiseDatabase();
-    return database.runAsync('delete from footage where id = ?', [Id]);
-  } catch(error) {
-    console.error("Error deleting footage: ", error);
-    throw error;
-  }
-};
+     // Calculate the threshold date
+     thresholdDate.setDate(currentDate.getDate() - days);
+     const thresholdDateString = thresholdDate.toISOString();
+
+     // Fetch footage records older than the threshold date where Flag is false
+     const result = await database.allAsync(
+       `SELECT * FROM footage WHERE date < ? AND Flag = ?;`,
+       [thresholdDateString, 0]
+     );
+     return result; // Return the fetched records
+
+   } catch (error) { // Log the error if fetching fails
+     console.error("Error getting old footage", error);
+     throw error;
+   }
+ };
+
+ /*
+  * Deletes entry from footage table by ID (Asynchronous)
+  * @param {number} Id - The ID of the footage entry to delete.
+  * @returns {Promise<void>} - A promise that resolves when the footage entry is deleted.
+  */
+ const deleteFot = async (Id) => {
+   try {
+     const database = await initialiseDatabase(); // Get the database instance
+     return database.runAsync('delete from footage where id = ?', [Id]); // Remove the entry with the specified ID
+   } catch(error) {
+     console.error("Error deleting footage: ", error); // Log the error if deletion fails
+     throw error;
+   }
+ };
 
 /*
  * Inserts new row into footage table (Asynchronous)
+ * @param {string} frontFotPath - Path to the front footage file
+ * @param {string} backFotPath - Path to the back footage file
+ * @param {string} date - Date of the footage
+ * @param {boolean} flag - Flag to indicate if the footage is saved by the user
  */
 const insertFot = async (frontFotPath, backFotPath, date, flag) => {
   try {
+    // Get the database instance
     const database = await initialiseDatabase();
-    return database.runAsync(
+    return database.runAsync(  // Asynchronously execute the SQL command
+      // SQL command to insert a new row into the 'footage' table with placeholders
       'INSERT INTO footage (FrontFotPath, BackFotPath, date, Flag) VALUES (?, ?, ?, ?);',
-      [frontFotPath, backFotPath, date, flag]
+      [frontFotPath, backFotPath, date, flag] // Values to replace placehiolders
     );
-  } catch(error) {
+  } catch(error) { // Throws an error if insertion fails
     console.error("Error inserting footage:", error);
     throw error;
   }
 };
 
-const toggleFlag = async (Id) => {
+/*
+ * Toggles the 'Flag' value for a specific footage entry by ID (Asynchronous)
+ * @param {number} Id - ID of the footage entry to toggle the flag for
+ * @returns {boolean} - Returns true if the flag was successfully toggled, false otherwise
+ */
+ const toggleFlag = async (Id) => {
   try {
+    // Get the database instance
     const database = await initialiseDatabase();
+
+    // Execute the SQL command to toggle the 'Flag' value
+    // If 'Flag' is 0, set it to 1; if 'Flag' is 1, set it to 0
     await database.runAsync('UPDATE footage SET Flag = CASE WHEN Flag = 0 THEN 1 ELSE 0 END WHERE ID = ?', [Id]);
+
+    // Return true indicating the flag was successfully toggled
     return true;
   } catch (error) {
+    // Log the error if the operation fails
     console.error('Error toggling flag:', error);
+
+    // Return false indicating the flag toggle operation failed
     return false;
   }
 };

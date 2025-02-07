@@ -1,0 +1,146 @@
+import React from 'react';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import SpeedTracker from '../components/SpeedSensor';
+import * as Location from 'expo-location';
+
+// Mock expo-location
+jest.mock('expo-location', () => ({
+  requestForegroundPermissionsAsync: jest.fn(),
+  watchPositionAsync: jest.fn(),
+  Accuracy: {
+    High: 'high',
+  },
+}));
+
+describe('SpeedTracker', () => {
+  beforeEach(() => {
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+  });
+
+  it('renders initially with 0 mph', () => {
+    const { getByText } = render(<SpeedTracker />);
+    expect(getByText('0 mph')).toBeTruthy();
+  });
+
+  it('shows Start Tracking button initially', () => {
+    const { getByText } = render(<SpeedTracker />);
+    expect(getByText('Start Tracking')).toBeTruthy();
+  });
+
+  it('changes button text when tracking is toggled', () => {
+    const { getByText } = render(<SpeedTracker />);
+    const button = getByText('Start Tracking');
+
+    fireEvent.press(button);
+    expect(getByText('Stop Tracking')).toBeTruthy();
+
+    fireEvent.press(button);
+    expect(getByText('Start Tracking')).toBeTruthy();
+  });
+
+  it('displays error message when location permission is denied', async () => {
+    Location.requestForegroundPermissionsAsync.mockResolvedValue({ status: 'denied' });
+
+    const { getByText } = render(<SpeedTracker />);
+    const button = getByText('Start Tracking');
+
+    await act(async () => {
+      fireEvent.press(button);
+    });
+
+    expect(getByText('Permission to access location was denied')).toBeTruthy();
+  });
+
+  it('starts tracking location when permission is granted', async () => {
+    const mockWatchPosition = jest.fn();
+    Location.requestForegroundPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    Location.watchPositionAsync.mockImplementation((options, callback) => {
+      mockWatchPosition();
+      return Promise.resolve({
+        remove: jest.fn(),
+      });
+    });
+
+    const { getByText } = render(<SpeedTracker />);
+    const button = getByText('Start Tracking');
+
+    await act(async () => {
+      fireEvent.press(button);
+    });
+
+    expect(Location.requestForegroundPermissionsAsync).toHaveBeenCalled();
+    expect(Location.watchPositionAsync).toHaveBeenCalled();
+    expect(mockWatchPosition).toHaveBeenCalled();
+  });
+
+  it('updates speed when receiving location updates', async () => {
+    Location.requestForegroundPermissionsAsync.mockResolvedValue({ status: 'granted' });
+
+    // Mock implementation that will call the callback with a speed value
+    Location.watchPositionAsync.mockImplementation((options, callback) => {
+      callback({
+        coords: {
+          speed: 10 // 10 m/s
+        }
+      });
+      return Promise.resolve({
+        remove: jest.fn(),
+      });
+    });
+
+    const { getByText } = render(<SpeedTracker />);
+    const button = getByText('Start Tracking');
+
+    await act(async () => {
+      fireEvent.press(button);
+    });
+
+    // 10 m/s ≈ 22 mph
+    expect(getByText('22 mph')).toBeTruthy();
+  });
+
+  it('sets speed to 0 when speed is below threshold', async () => {
+    Location.requestForegroundPermissionsAsync.mockResolvedValue({ status: 'granted' });
+
+    Location.watchPositionAsync.mockImplementation((options, callback) => {
+      callback({
+        coords: {
+          speed: 0.5 // 0.5 m/s (below 0.7 threshold)
+        }
+      });
+      return Promise.resolve({
+        remove: jest.fn(),
+      });
+    });
+
+    const { getByText } = render(<SpeedTracker />);
+    const button = getByText('Start Tracking');
+
+    await act(async () => {
+      fireEvent.press(button);
+    });
+
+    expect(getByText('0 mph')).toBeTruthy();
+  });
+
+  it('cleans up location subscription when unmounting', async () => {
+    const mockRemove = jest.fn();
+    Location.requestForegroundPermissionsAsync.mockResolvedValue({ status: 'granted' });
+    Location.watchPositionAsync.mockImplementation(() =>
+      Promise.resolve({
+        remove: mockRemove,
+      })
+    );
+
+    const { getByText, unmount } = render(<SpeedTracker />);
+    const button = getByText('Start Tracking');
+
+    await act(async () => {
+      fireEvent.press(button);
+    });
+
+    unmount();
+    expect(mockRemove).toHaveBeenCalled();
+  });
+});
