@@ -1,7 +1,7 @@
 import config from "@/config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     StyleSheet,
     Switch,
@@ -24,7 +24,9 @@ const SettingsModal = () => {
     try {
       const savedSettings = await AsyncStorage.getItem("settings");
       if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
+        const parsedSettings = JSON.parse(savedSettings);
+        setSettings(parsedSettings);
+        updateConfig(parsedSettings); // Apply loaded settings to config
       }
     } catch (error) {
       console.error("Failed to load settings", error);
@@ -35,10 +37,19 @@ const SettingsModal = () => {
     try {
       await AsyncStorage.setItem("settings", JSON.stringify(newSettings));
       setSettings(newSettings);
+      updateConfig(newSettings); // Apply saved settings to config
     } catch (error) {
       console.error("Failed to save settings", error);
     }
   };
+
+  const updateConfig = (newSettings: typeof config) => {
+    // Update config with the new settings
+    (Object.keys(newSettings) as Array<keyof typeof config>).forEach((key) => {
+      (config as any)[key] = newSettings[key];
+    });
+  };
+
 
   const handleToggle = (key: keyof typeof config) => (value: boolean) => {
     const newSettings = { ...settings, [key]: value };
@@ -46,7 +57,16 @@ const SettingsModal = () => {
   };
 
   const handleInputChange = (key: keyof typeof config) => (value: string | number) => {
-    const newSettings = { ...settings, [key]: value };
+    let parsedValue: any = value;
+    if (typeof config[key] === 'number') {
+      parsedValue = Number(value);
+      if (isNaN(parsedValue)) {
+        // Don't update if the input is not a valid number.
+        return;
+      }
+    }
+
+    const newSettings = { ...settings, [key]: parsedValue };
     saveSettings(newSettings);
   };
 
